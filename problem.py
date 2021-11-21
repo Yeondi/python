@@ -11,11 +11,13 @@ class Problem(Setup): #상속
         self._pFileName = 0 # file name
         self._bestSolutionData = 0 # bestSolution data through many experimental
         self._objData = 0 # its objective Value
-        self._avgMinObjValue = 0.0 # average Number of Experience Data
-        self._limitEval = 0 # average iteration when the best solution appears
+        self._avgMinObjValue = 0.0 # average obj value
+        self._avgNumEval = 0 # average Number of Experiment Data
+        self._iter = 0 # average iteration when the best solution appears
         self._expNumEval = 0
         self._sumExpNumEval = 0
         self._tempAvg = 0.0
+        self._loop = list()
     
     def getNumEval(self):
         return self._numEval
@@ -50,11 +52,17 @@ class Problem(Setup): #상속
     def storeResult(self,solution,value):
         self._solution = solution
         self._value = value
+    def calcAvgNumEval(self,pLoop):
+        result = 0
+        for i in range(len(pLoop)):
+            result += pLoop[i]
+        return result / len(pLoop)
 
     def report(self):
         print()
         print("Average objective value: {0:.3f}".format(self._avgMinObjValue))
-        print("Average number of evalutations: {0:,}".format(self._expNumEval))
+        self._avgNumEval = self.calcAvgNumEval(self._loop)
+        print("Average number of evalutations: {0:,}".format(self._avgNumEval))
         print()
         print("Best solution found:")
         print("({0:.3f}, {1:.3f}, {2:.3f}, {3:.3f})".format(self._bestSolutionData[0],self._bestSolutionData[1],self._bestSolutionData[2],self._bestSolutionData[3]))

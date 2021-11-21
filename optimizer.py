@@ -6,34 +6,48 @@ import random
 import math
 
 class Optimizer():
-    pass
-
-class HillClimbing(Setup,Optimizer):
     def __init__(self):
-        super().__init__() # superclass initializing
-        self._delta = self.getDeltaInSetup() #상속받은 값
-        self._alpha = self.getAlphaInSetup()
         self._pType = 0
         self._aType = 0
         self._limitStuck = 100
         self._numExp = 0
         self._restartValue = 0
+        self._loopCount = 0
+
+    def setLoopCount(self):
+        self._loopCount+=1
+
+
+    def displaySetting(self):
+        print("common information") # 오버라이딩용
+        #limitStuck
+
+    def run(self,p):
+        pass
+
+class HillClimbing(Setup,Optimizer):
+    def __init__(self):
+        super().__init__() # superclass initializing
+        Optimizer.__init__(self)
+        self._delta = self.getDeltaInSetup() #상속받은 값
+        self._alpha = self.getAlphaInSetup()
+
 
     def setVariables(self,parameters):
         self._pType = parameters['pType'] #값 세팅
+        self._aType = parameters['aType']
         self._numExp = parameters['numExp']
         self._restartValue = parameters['numRestart']
         self._limitStuck = parameters['limitStuck']
+        self._limitNumEval = parameters['limitEval']
         self._alpha = parameters['alpha']
         
-        # self._aType = aType
-
     def displaySetting(self):
         print("common information") # 오버라이딩용
         #limitStuck
     
     def getAType(self):
-        return self._aType
+        return self._aType 
     
     def getNumExp(self):
         return self._numExp
@@ -45,6 +59,8 @@ class HillClimbing(Setup,Optimizer):
     def randomRestart(self,p):
         for i in range(self._restartValue):
             self.run(p)
+            self.setLoopCount()
+        p._loop.append(self._loopCount)
     
     def run(self,p):
         pass
@@ -104,6 +120,7 @@ class FirstChoice(HillClimbing):
         print("Number of random restarts: {0:}".format(None))
         print()
         print("Mutation step size:", self._delta)
+        print("Max evaluations with no improvement: {0:} iterations".format(self._limitStuck))
     
     def run(self,p):
         current = p.randomInit()   # 'current' is a list of values
@@ -123,9 +140,13 @@ class FirstChoice(HillClimbing):
 
 class GradientDescent(HillClimbing):
     def displaySetting(self):
-        print("GradientDescent")
-        # print("common information")
+        print()
+        print("Search algorithm: First-Choice Hill Climbing")
+        print()
+        print("Number of random restarts: {0:}".format(None))
+        print()
         print("Mutation step size:", self._delta)
+        print("Max evaluations with no improvement: {0:} iterations".format(self._limitStuck))
     
     def run(self,p):
         current = p.randomInit() # 'current' is a list of values
@@ -137,6 +158,10 @@ class GradientDescent(HillClimbing):
         p.storeResult(nextP,nextN) # 새로만들기 problem.py
 
 class Stochastic(HillClimbing):
+    def displaySetting(self):
+        print("Stochastic")
+        print("Mutation step size:", self._delta)
+
     def stochasticBest(self, neighbors, p):
         # Smaller valuse are better in the following list
         valuesForMin = [p.evaluate(indiv) for indiv in neighbors]
@@ -154,7 +179,16 @@ class Stochastic(HillClimbing):
         return neighbors[i], valuesForMin[i]
 
 class MetaHeuristics(Optimizer):
-    pass
+    def displaySetting(self):
+        print("Search algorithm: MetaHeuristics")
+        print()
+        print("Number of random restarts: {0:}".format(None))
+        print()
+        print("Mutation step size:", self._delta)
+        print()
+        print("Max evaluations with no improvement: {0:} iterations".format(self._limitStuck))
+        print()
+        print("Average iteration : ", None)
 
 class SimulatedAnnealing(MetaHeuristics):
     def initTemp(self, p): # To set initial acceptance probability to 0.5
