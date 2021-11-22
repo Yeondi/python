@@ -12,7 +12,7 @@
 #  Enter the name of the file : problem/tsp100.txt
 #
 # Select the search algorithm:
-#  Hill Climbing algorithms:
+#  Hill Climbing algorithms: pick one through Random-restart Function and run a algorithm
 #    1. Steepest-Ascent
 #    2. First-Choice
 #    3. Stochastic
