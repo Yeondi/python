@@ -1,24 +1,19 @@
 # parent of Problem.py and Hillclimbing.py
 LIMIT_STUCK = 100
 class Setup: # 공통된 데이터
-    def __init__(self) -> None:
+    def __init__(self):
         self._delta = 0.01
         self._alpha = 0.01
         self._dx = 0
         self._aType = 0
-    def getDelta(self):
+    def getDeltaInSetup(self):
         return self._delta
-    def getAlpha(self):
+    def getAlphaInSetup(self):
         return self._alpha
-    def getDx(self):
+    def getDxInSetup(self):
         return self._dx
-    def getAType(self):
+    def getATypeInSetup(self):
         return self._aType
-
-    def setVariables(self,parameters):
-        self._aType = parameters['aType']
-        self._alpha = parameters['alpha']
-        self._delta = parameters['delta']
 
         #솔직히 겹치는 부분이 생각보다 꽤 있는데, 그러면 Problem자체를 덮어도 될 정도라 이정도로 유지했습니다.
 

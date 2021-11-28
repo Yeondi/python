@@ -31,7 +31,7 @@ def readPlan():
     infile = open(fileName, 'r')
     parameters = { 'pType':0, 'pFileName':'', 'aType':0, 'delta':0,
                    'limitStuck':0, 'alpha':0, 'dx':0, 'numRestart':0,
-                   'limitEval':0, 'popSize':0, 'resolution':0, 'uXp':0,'mrF':0,'XR':0,'mR':0, 'numExp':0 }
+                   'limitEval':0, 'numExp':0 }
     parNames = list(parameters.keys())
     for i in range(len(parNames)):
         line = lineAfterComments(infile)
@@ -69,8 +69,7 @@ def createOptimizer(parameters): ###
                     2:'FirstChoice()',
                     3:'Stochastic()',
                     4:'GradientDescent()',
-                    5:'SimulatedAnnealing()',
-                    6:'GA()'}
+                    5:'SimulatedAnnealing()'} # 2,3,4,5 exp.txt참고
     aType = parameters['aType']
     alg = eval(optimizers[aType])
     alg.setVariables(parameters)
@@ -84,7 +83,7 @@ def conductExperiment(p, alg):
         alg.randomRestart(p)
     else:
         alg.run(p)
-    bestSolution = p.getSolution() ###
+    bestSolution = p.getSolution()
     bestMinimum = p.getValue()    # First result is current best
     numEval = p.getNumEval()
     sumOfMinimum = bestMinimum    # Prepare for averaging

@@ -1,6 +1,5 @@
 import random
 import math
-from plot import editPlot
 from setup import *
 
 class Problem(Setup): #상속
@@ -10,16 +9,16 @@ class Problem(Setup): #상속
         self._value = 0
         self._numEval = 0
         self._pFileName = 0 # file name
+        self._bestSolutionData = 0 # bestSolution data through many experimental
         self._bestMinimum = 0 # its objective Value
         self._avgMinObjValue = 0.0 # average obj value
         self._avgNumEval = 0 # average Number of Experiment Data
         self._iter = 0 # average iteration when the best solution appears
         self._avgNumEval = 0
         self._sumExpNumEval = 0
+        self._bestValue = 0
+        self._loop = list() # problem의 loop값을 쌓고 그 값을 합해서 계산하려했는데, 이 의도가 역시 아닌것 같았습니다.
         self._avgWhen = 0
-
-        self._resolution = 0
-        self._plot = []
         
     
     def getNumEval(self):   # get함수는 default로 만들어놓았고, set의경우 실질적으로 값이 넘어가야하는 경우만 만들었습니다.
@@ -31,14 +30,14 @@ class Problem(Setup): #상속
     def getValue(self):
         return self._value
 
-    def setValue(self,value):
-        self._value = value
-
     def setNumEval(self, cnt=0):
         self._numEval += cnt
 
     def getExpNameData(self):         # 혹시모를 get을 사용할 경우를 위한 get
         return self._pFileName
+
+    def getBestSolutionData(self):
+        return self._bestSolutionData
 
     def getObjData(self):
         return self._bestMinimum
@@ -58,12 +57,6 @@ class Problem(Setup): #상속
     def storeResult(self,solution,value):
         self._solution = solution
         self._value = value
-        self._plot.append([solution,value])
-        if self._bestMinimum > value:
-            self._bestMinimum = value
-
-    def getPlot(self):
-        return self._plot
 
     def calcAvgNumEval(self,pLoop): # problem에서 loop값을 가져와 값을 쌓아주는데, 결과를보니 이 방식이 아니네요.
         result = 0
@@ -81,10 +74,9 @@ class Problem(Setup): #상속
         if 5 <= aType <= 6:
             print("Average iteration of finding the best: {0:,}".format(self._avgWhen))
         print("Best solution found:")
-        print("({0:.3f}, {1:.3f}, {2:.3f}, {3:.3f}, {4:.3f})".format(self._solution[0],self._solution[1],self._solution[2],self._solution[3],self._solution[4]))
-        print("Best value: {0:.3f}".format(self._bestMinimum))
+        print("({0:.3f}, {1:.3f}, {2:.3f}, {3:.3f})".format(self._bestSolutionData[0],self._bestSolutionData[1],self._bestSolutionData[2],self._bestSolutionData[3]))
+        print("Best value: {0:.3f}".format(self._bestValue))
         print()
-        editPlot(self).run()
 
     def reportNumEvals(self):
         if 1 <= self._aType <= 4:
@@ -94,63 +86,27 @@ class Problem(Setup): #상속
     def setVariables(self,parameters):
         self._pFileName = parameters['pFileName']
         self.avgWhen = parameters['limitEval']
-        self._resolution = parameters['resolution']
 
     def calcBestValue(self):
         for i in range(1,5): # 계속되는 반복속에서 bestValue를 걸러내기 위한 함수
             if self._bestValue == 0:
-                self._bestValue = self._solution[0]
-            if self._solution[i] > self._bestValue:
-                self.setBestValue(self._solution)
+                self._bestValue = self._bestSolutionData[0]
+            if self._bestSolutionData[i] > self._bestValue:
+                self.setBestValue(self._bestSolutionData)
+        
 
-    def evalInd(self,ind): # ind : [fitness,chromosome]
-        self._solution = self.decode(ind[1])
-        ind[0] = self.evaluate(self.decode(ind[1]))
-        # record fitness
-    
-    def decode(self,chromosome):
-        r = self._resolution
-        low = self._domain[1] # list of lower bounds
-        up = self._domain[2] # list of upper bounds
-        genotype = chromosome[:]
-        phenotype = []
-        start = 0
-        end = r # the following loop repeats for # variable
-        for var in range(len(self._domain[0])):
-            value = self.binaryToDecimal(genotype[start:end],low[var],up[var])
-            phenotype.append(value)
-            start +=r
-            end+=r
-        return phenotype
 
-    def binaryToDecimal(self,binCode,l,u):
-        r = len(binCode)
-        decimalValue = 0
-        for i in range(r):
-            decimalValue += binCode[i] * (2 **  (r-1-i))
-        return l+(u-1) * decimalValue / 2 ** r
-
-    def crossover(self,ind1,ind2,uXp):
-        chr1,chr2 = self.uXover(ind1[1],ind2[1],uXp)
-        return [0,chr1],[0,chr2]
-
-    def uXover(self,chrInd1,chrInd2,uXp):
-        chr1 = chrInd1[:]
-        chr2 = chrInd2[:]
-        for i in range(len(chr1)):
-            if random.uniform(0,1) < uXp:
-                chr1[i], chr2[i] = chr2[i],chr1[i]
-        return chr1,chr2
-                                            
 class Numeric(Problem):
     def __init__(self) -> None:
         super().__init__()
-        self._delta= self.getDelta() # 기존 superClass call로 이렇게
+        self._delta= self.getDeltaInSetup() # 기존 superClass call로 이렇게
         self._domain=[]
         self._expression = ''
     #   gradient descent
-        self._dx=self.getDx()
-        self._alpha = self.getAlpha() # 위와 같음
+        self._dx=self.getDxInSetup()
+        self._alpha = self.getAlphaInSetup() # 위와 같음
+    def getAlpha(self):
+        return self._alpha
 
     def takeStep(self,x,y):
         grad = self.gradient(x,y)
@@ -305,38 +261,19 @@ class Numeric(Problem):
     
     def storeExpResult(self,results):
         # results = 
-            # bestSolution = self._solution,
+            # bestSolution = self._bestSolutionData,
             # bestMinimum = self._bestMinimum,
             # avgMinimum = self._avgMinObjValue,
             # avgNumEval = self._avgNumEval,
             # sumOfNumEval = self._sumExpNumEval,
             # avgWhen = self.avgWhen
-        self._solution = results[0]
+        self._bestSolutionData = results[0]
         self._bestMinimum = results[1]
         self._avgMinObjValue = results[2]
         self._avgNumEval = results[3]
         self._sumExpNumEval = results[4]
-        # self.calcBestValue()
+        self.calcBestValue()
         self._avgWhen = results[5]
-        self._plot.append(results)
-    
-    def initializePop(self,size):
-        pop = []
-        for i in range(size):
-            chromosome = self.randBinStr()
-            pop.append([0,chromosome])
-        return pop
-    
-    def randBinStr(self):
-        k = len(self._domain[0]) * self._resolution
-        chromosome = []
-        for i in range(k):
-            allele = random.randint(0,1)
-            chromosome.append(allele)
-        return chromosome
-
-    def indToSol(self,ind): #bestSolution 뽑는애?
-        pass
 
 
 class Tsp(Problem):
